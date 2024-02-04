@@ -17,9 +17,12 @@ public class PlayerKey implements Serializable {
     @Column(name = "side")
     private String side;
 
-    @Column(name = "gameTime")
+    @Column(name = "game_time")
     private String gameTime;
 
     @Column(name = "quarter")
     private int quarter;
+
+    @Column(name = "game_id")
+    private String gameId;
 }

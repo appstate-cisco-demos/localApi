@@ -1,5 +1,6 @@
 package com.appstate.cisco.presentation.rest;
 
+import com.appstate.cisco.presentation.service.FetchingService;
 import com.appstate.cisco.presentation.service.GameStatsService;
 import io.swagger.v3.oas.annotations.Operation;
 import com.appstate.cisco.presentation.model.response.PlayerResponse;
@@ -29,6 +30,9 @@ public class GameStatsController {
     @Autowired
     GameStatsService gameStatsService;
 
+    @Autowired
+    FetchingService fetchingService;
+
     @Operation(
             description =
                     "Get the most valuable player in the game thus far.",
@@ -50,5 +54,10 @@ public class GameStatsController {
         } catch (EntityNotFoundException e) {
             return new ResponseEntity(NO_MVP, HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping(path = "/start")
+    public void startFetch() {
+        fetchingService.start();
     }
 }

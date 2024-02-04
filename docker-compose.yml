@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  mysql:
+    hostname: db
+    platform: linux/amd64
+    restart: unless-stopped
+    image: mysql:5.7
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: sports_game
+      MYSQL_DATABASE: player_db
+      MYSQL_USER: admin
+      # this is defined to match what exists in the circle CI orb for testing
+      MYSQL_PASSWORD: admin
