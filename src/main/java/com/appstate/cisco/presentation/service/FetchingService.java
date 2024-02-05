@@ -29,62 +29,36 @@ public class FetchingService extends Thread {
         while(true) {
             try {
                 URL url = new URL("http://localhost:3000/");
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                // Start a new game
-                con.setRequestMethod("POST");
-                int responseCode = con.getResponseCode();
+                HashMap response = makeRequest("POST", url);
 
-                if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    String inputLine;
-                    StringBuffer response = new StringBuffer();
-
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    in.close();
-                    Map<String, String> map = gson.fromJson(response.toString(), Map.class);
+                if (!response.isEmpty() && (int) response.get("responseCode") == HttpURLConnection.HTTP_OK) { // success
+                    Map<String, String> map = gson.fromJson(response.get("body").toString(), Map.class);
                     // collect new gameId
                     String gameId = map.get("gameId");
+                    GameStatsService.currentGameId = gameId;
                     String gameTime = "";
                     double quarter = 0;
                     do {
                         // Start fetching player info for the game state
                         url = new URL("http://localhost:3000/" + gameId + "/players");
-                        con = (HttpURLConnection) url.openConnection();
-                        con.setRequestMethod("GET");
-                        responseCode = con.getResponseCode();
+                        response = makeRequest("GET", url);
 
-                        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                            in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                            response = new StringBuffer();
+                        if (!response.isEmpty() && (int) response.get("responseCode") == HttpURLConnection.HTTP_OK) { // success
 
-                            while ((inputLine = in.readLine()) != null) {
-                                response.append(inputLine);
-                            }
-                            in.close();
-                            List<Map> players = gson.fromJson(response.toString(), List.class);
+                            List<Map> players = gson.fromJson(response.get("body").toString(), List.class);
                             url = new URL("http://localhost:3000/" + gameId);
-                            con = (HttpURLConnection) url.openConnection();
-                            con.setRequestMethod("GET");
-                            responseCode = con.getResponseCode();
+                            response = makeRequest("GET", url);
                             Map<String, Object> key = new HashMap<>();
-                            if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                                response = new StringBuffer();
 
-                                while ((inputLine = in.readLine()) != null) {
-                                    response.append(inputLine);
-                                }
-                                in.close();
-
-                                Map info = gson.fromJson(response.toString(), Map.class);
+                            if (!response.isEmpty() && (int) response.get("responseCode") == HttpURLConnection.HTTP_OK) { // success
+                                Map info = gson.fromJson(response.get("body").toString(), Map.class);
                                 gameTime = (String) info.get("time");
                                 key.put("gameTime", gameTime);
                                 quarter = (double) info.get("quarter");
                                 key.put("quarter", quarter);
 
-                            } else {
+                            }
+                            else {
                                 System.out.println("GET game info did not work.");
                             }
 
@@ -103,15 +77,17 @@ public class FetchingService extends Thread {
                                 PlayerEntity playerEntity = gson.fromJson(gson.toJson(player), PlayerEntity.class);
                                 playerEntity.setKey(playerKey);
                                 playerRepository.save(playerEntity);
-
                             }
 
-                        } else {
+                        }
+                        else {
                             System.out.println("GET players request did not work.");
                         }
                     Thread.sleep(1000);
                  } while(!gameTime.equals("0:00") && quarter != 4);
-                } else{
+
+                }
+                else {
                     System.out.println("POST request did not work.");
                 }
             } catch (MalformedURLException e) {
@@ -120,5 +96,30 @@ public class FetchingService extends Thread {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private HashMap makeRequest(String method, URL url) {
+        HashMap returnObject = new HashMap<>();
+        try {
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod(method);
+            StringBuffer response = null;
+            int responseCode = con.getResponseCode();
+            returnObject.put("responseCode", responseCode);
+            if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                response = new StringBuffer();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                returnObject.put("body", response);
+            }
+            return returnObject;
+        } catch (IOException e) {
+            System.out.println("Unable to make " + method + " request to " + url);
+        }
+        return returnObject;
     }
 }

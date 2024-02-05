@@ -17,15 +17,15 @@ public class GameStatsService {
     @Autowired
     private PlayerRepository playerRepository;
 
-    public GameStatsService(){}
+    public static String currentGameId;
 
     public PlayerResponse getMVP(String side) {
         List<PlayerEntity> highestScoringPlayers;
         if (side != null) {
-            highestScoringPlayers = playerRepository.getHighestScoringPlayers(side);
+            highestScoringPlayers = playerRepository.getHighestScoringPlayers(side, currentGameId);
         }
         else {
-            highestScoringPlayers = playerRepository.getHighestScoringPlayers();
+            highestScoringPlayers = playerRepository.getHighestScoringPlayers(currentGameId);
         }
         if (highestScoringPlayers.isEmpty()) {
             throw new EntityNotFoundException();
