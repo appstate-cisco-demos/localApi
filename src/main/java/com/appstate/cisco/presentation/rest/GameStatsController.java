@@ -48,7 +48,7 @@ public class GameStatsController {
                     })
     })
     @GetMapping(path = "/mvp")
-    public ResponseEntity<PlayerResponse> getMostValuablePlayer(@RequestParam(name="side", required = false) String side) {
+    public ResponseEntity<PlayerResponse> getHighestScoringPlayer(@RequestParam(name="side", required = false) String side) {
         try {
             return new ResponseEntity(gameStatsService.getMVP(side), HttpStatus.OK);
         } catch (EntityNotFoundException e) {

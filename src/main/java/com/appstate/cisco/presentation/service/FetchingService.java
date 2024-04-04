@@ -5,6 +5,7 @@ import com.appstate.cisco.presentation.model.entity.PlayerKey;
 import com.appstate.cisco.presentation.repository.PlayerRepository;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -24,11 +25,14 @@ public class FetchingService extends Thread {
     @Autowired
     PlayerRepository playerRepository;
 
+    @Value("${sports.api.host}")
+    String host;
+
     public void run() {
         System.out.println(this.getName() + ": Fetching Thread is running...");
         while(true) {
             try {
-                URL url = new URL("http://localhost:3000/");
+                URL url = new URL("http://" + host + ":3000/");
                 HashMap response = makeRequest("POST", url);
 
                 if (!response.isEmpty() && (int) response.get("responseCode") == HttpURLConnection.HTTP_OK) { // success
@@ -40,13 +44,13 @@ public class FetchingService extends Thread {
                     double quarter = 0;
                     do {
                         // Start fetching player info for the game state
-                        url = new URL("http://localhost:3000/" + gameId + "/players");
+                        url = new URL("http://" + host + ":3000/" + gameId + "/players");
                         response = makeRequest("GET", url);
 
                         if (!response.isEmpty() && (int) response.get("responseCode") == HttpURLConnection.HTTP_OK) { // success
 
                             List<Map> players = gson.fromJson(response.get("body").toString(), List.class);
-                            url = new URL("http://localhost:3000/" + gameId);
+                            url = new URL("http://" + host + ":3000/" + gameId);
                             response = makeRequest("GET", url);
                             Map<String, Object> key = new HashMap<>();
 
