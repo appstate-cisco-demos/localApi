@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class GameStatsController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GameStatsController.class);
-    private final String NO_MVP = "No MVP can currently be determined.";
+    private final String NO_HIGHEST = "No highest scoring player can currently be determined.";
+    private final String NO_LOWEST = "No lowest scoring player can currently be determined.";
 
     @Autowired
     GameStatsService gameStatsService;
@@ -47,16 +49,25 @@ public class GameStatsController {
                                             schema = @Schema(implementation = PlayerResponse.class))
                     })
     })
-    @GetMapping(path = "/mvp")
-    public ResponseEntity<PlayerResponse> getHighestScoringPlayer(@RequestParam(name="side", required = false) String side) {
+    @GetMapping(path = "/HighestScoring")
+    public ResponseEntity<PlayerResponse> getHighestScoringPlayers(@RequestParam(name="side", required = false) String side) {
         try {
-            return new ResponseEntity(gameStatsService.getMVP(side), HttpStatus.OK);
+            return new ResponseEntity(gameStatsService.getHighestScoringPlayer(side), HttpStatus.OK);
         } catch (EntityNotFoundException e) {
-            return new ResponseEntity(NO_MVP, HttpStatus.NOT_FOUND);
+            return new ResponseEntity(NO_HIGHEST, HttpStatus.NOT_FOUND);
         }
     }
 
-    @GetMapping(path = "/start")
+    @GetMapping(path = "/LowestScoring")
+    public ResponseEntity<PlayerResponse> getLowestScoringPlayer(@RequestParam(name="side") String side) {
+        try {
+            return new ResponseEntity(gameStatsService.getLowestScoringPlayer(side), HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity(NO_LOWEST, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping(path = "/start")
     public void startFetch() {
         fetchingService.start();
     }

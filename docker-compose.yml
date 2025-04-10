@@ -8,7 +8,7 @@ services:
     ports:
       - 3306:3306
     environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: sports_game
+      MYSQL_RANDOM_ROOT_PASSWORD: root
       MYSQL_DATABASE: player_db
       MYSQL_USER: admin
       # this is defined to match what exists in the circle CI orb for testing

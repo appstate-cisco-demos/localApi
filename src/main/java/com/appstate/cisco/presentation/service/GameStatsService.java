@@ -8,6 +8,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -19,7 +21,7 @@ public class GameStatsService {
 
     public static String currentGameId;
 
-    public PlayerResponse getMVP(String side) {
+    public List<PlayerResponse> getHighestScoringPlayer(String side) {
         List<PlayerEntity> highestScoringPlayers;
         if (side != null) {
             highestScoringPlayers = playerRepository.getHighestScoringPlayers(side, currentGameId);
@@ -30,15 +32,26 @@ public class GameStatsService {
         if (highestScoringPlayers.isEmpty()) {
             throw new EntityNotFoundException();
         }
-        else if (highestScoringPlayers.size() > 1) {
-            PlayerKey keyOne = highestScoringPlayers.get(0).getKey();
-            PlayerKey keyTwo = highestScoringPlayers.get(1).getKey();
-            if (!keyOne.getSide().equals(keyTwo.getSide()) || keyOne.getNumber() != keyTwo.getNumber()) {
-                // Not the same player...
-                throw new EntityNotFoundException();
-            }
+        List<PlayerResponse> responses = new ArrayList<>();
+        highestScoringPlayers.stream().forEach(player -> {responses.add(new PlayerResponse(player));});
+        return responses;
+    }
+
+    public List<PlayerResponse> getLowestScoringPlayer(String side) {
+        List<PlayerEntity> lowestScoringPlayers;
+        if (side != null) {
+            lowestScoringPlayers = playerRepository.getLowestScoringPlayers(side, currentGameId);
         }
-        return new PlayerResponse(highestScoringPlayers.get(0));
+        else {
+            lowestScoringPlayers = playerRepository.getLowestScoringPlayers(currentGameId);
+        }
+        if (lowestScoringPlayers.isEmpty()) {
+            throw new EntityNotFoundException();
+        }
+        lowestScoringPlayers = playerRepository.getLowestScoringPlayers(side, currentGameId);
+        List<PlayerResponse> responses = new ArrayList<>();
+        lowestScoringPlayers.stream().forEach(player -> {responses.add(new PlayerResponse(player));});
+        return responses;
     }
 
 }
